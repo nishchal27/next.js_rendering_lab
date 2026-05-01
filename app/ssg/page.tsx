@@ -1,5 +1,6 @@
 import { RenderingLabPage } from "@/components/RenderingLabPage";
 import { fetchPosts } from "@/lib/api";
+import { fetchLiveDataSnapshot } from "@/lib/live-data";
 
 /*
   /ssg route
@@ -19,15 +20,15 @@ export const dynamic = "force-static";
 
 export default async function SsgPage() {
   // force-static tells Next.js this page should be treated as static HTML.
-  const result = await fetchPosts();
+  const [result, liveInitialData] = await Promise.all([fetchPosts(), fetchLiveDataSnapshot()]);
 
   return (
     <RenderingLabPage
       mode="ssg"
-      posts={result.posts}
       renderedAt={new Date().toISOString()}
       dataFetchedAt={result.fetchedAt}
       dataSource={result.source}
+      liveInitialData={liveInitialData}
     />
   );
 }

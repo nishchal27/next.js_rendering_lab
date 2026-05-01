@@ -1,5 +1,6 @@
 import { RenderingLabPage } from "@/components/RenderingLabPage";
 import { fetchPosts } from "@/lib/api";
+import { fetchLiveDataSnapshot } from "@/lib/live-data";
 
 /*
   /ssr route
@@ -18,15 +19,15 @@ export const dynamic = "force-dynamic";
 
 export default async function SsrPage() {
   // force-dynamic makes this route render on every request instead of being cached.
-  const result = await fetchPosts();
+  const [result, liveInitialData] = await Promise.all([fetchPosts(), fetchLiveDataSnapshot()]);
 
   return (
     <RenderingLabPage
       mode="ssr"
-      posts={result.posts}
       renderedAt={new Date().toISOString()}
       dataFetchedAt={result.fetchedAt}
       dataSource={result.source}
+      liveInitialData={liveInitialData}
     />
   );
 }

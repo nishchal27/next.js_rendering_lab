@@ -1,72 +1,90 @@
 # Next.js Rendering Lab
 
-A visual demo app for comparing **CSR, SSR, SSG, and ISR** in the Next.js App Router.
+A visual comparison app for exploring rendering and client-side data updates in the Next.js App Router.
 
-The app renders the same UI in four different ways so the rendering behavior is easier to observe:
+The app separates two concerns that are often mixed together:
 
-- where HTML is generated
-- when data is prepared
-- whether the browser, server, build process, or cache is involved
-- how timestamps change across rendering strategies
+- **Initial rendering**: CSR, SSR, SSG, and ISR
+- **Client-side updates**: TanStack Query versus a naive `useEffect` fetch
+
+The goal is to make the behavior visible quickly: the left side is the production-style pattern, the right side is the naive pattern.
 
 ## Routes
 
 | Route | Rendering Strategy | What It Shows |
 | --- | --- | --- |
-| `/csr` | Client Side Rendering | Data is loaded in the browser after JavaScript runs. |
-| `/ssr` | Server Side Rendering | HTML is generated on the server for each request. |
-| `/ssg` | Static Site Generation | HTML is generated during the production build. |
+| `/csr` | Client Side Rendering | Initial content appears after browser JavaScript runs. |
+| `/ssr` | Server Side Rendering | Initial HTML is generated on the server for each request. |
+| `/ssg` | Static Site Generation | Initial HTML is generated during the production build. |
 | `/isr` | Incremental Static Regeneration | Cached HTML is served and regenerated after a revalidate interval. |
 
-## What The App Shows
+## Main Comparison
 
-Each route uses the same base UI:
+Each route includes a side-by-side live data comparison.
 
-- page header
-- rendering info panel
-- rendering pipeline
-- posts list
-- debug panel
+### Production Pattern
 
-The UI stays consistent so the differences between CSR, SSR, SSG, and ISR are easier to compare.
+The left panel uses **TanStack Query**.
 
-## Rendering Info
+It demonstrates:
 
-Each page displays:
+- `queryKey`
+- `queryFn`
+- `refetchInterval`
+- `staleTime`
+- cached data
+- background refetching
+- initial data support for server-rendered/static routes
 
-- where HTML is generated
-- when HTML is generated
-- where the page was rendered
-- revalidate time, when applicable
+The UI keeps showing the previous value while fresh data is fetched in the background.
 
-## Rendering Pipeline
+### Naive Pattern
 
-The rendering pipeline visualizes the main steps involved in each strategy.
+The right panel uses plain `useEffect` and `fetch`.
 
-Examples:
+It demonstrates:
 
-- browser requests a route
-- Next.js sends an app shell
-- React hydrates on the client
-- server prepares data
-- build process creates static HTML
-- cache serves an existing page
-- ISR regenerates after the configured interval
+- no shared cache
+- no fallback data
+- client-only loading
+- visible flicker on updates
+- UI replacement after every request
 
-The pipeline is a UI simulation. The actual rendering behavior is controlled by the files inside the `app/` directory.
+This makes the difference obvious: production state management stays smooth, while the naive approach repeatedly clears and reloads the UI.
 
-## Debug Panel
+## Data Source
 
-The debug panel shows runtime values for each route:
+The app uses a local simulated API:
 
-- `Rendered at`
-- `Data fetched at`
-- `Rendered on`
-- `Data source`
-- `Revalidate time`
-- background steps for the selected rendering strategy
+```txt
+/api/live-data
+```
 
-These values make it easier to compare how each route behaves when the page is opened, refreshed, built, or regenerated.
+It returns:
+
+- a changing value
+- a delta
+- a timestamp
+- sparkline points
+- optional delay simulation through `?delay=`
+
+No external API is used. This keeps the behavior predictable and easy to inspect.
+
+## Page Structure
+
+Each rendering route follows the same structure:
+
+1. Header
+2. Initial Render Info
+3. Live Comparison
+4. What to notice
+5. Collapsible sections
+
+Collapsed sections include:
+
+- Rendering Pipeline
+- Debug Panel
+- Technical Notes
 
 ## Tech Stack
 
@@ -74,15 +92,16 @@ These values make it easier to compare how each route behaves when the page is o
 - React
 - TypeScript
 - Tailwind CSS
+- TanStack Query
 - ESLint
 
 ## Project Structure
 
 ```txt
 app/
-  page.tsx
-  layout.tsx
-  globals.css
+  api/
+    live-data/
+      route.ts
   csr/
     page.tsx
     ClientRenderingPage.tsx
@@ -92,14 +111,21 @@ app/
     page.tsx
   isr/
     page.tsx
+  globals.css
+  layout.tsx
+  page.tsx
 
 components/
+  CollapsibleSection.tsx
+  LiveComparisonPanel.tsx
+  LiveDataCard.tsx
   LoadingPosts.tsx
   RenderingLabPage.tsx
   RenderingPipeline.tsx
 
 lib/
   api.ts
+  live-data.ts
   rendering-modes.ts
 ```
 
@@ -109,91 +135,31 @@ lib/
 
 CSR uses a client component with `useEffect` and `useState`.
 
-Flow:
-
-1. The browser requests `/csr`.
-2. Next.js sends the initial app shell.
-3. Browser downloads and runs JavaScript.
-4. React hydrates.
-5. `useEffect` fetches the posts.
-6. React updates the UI in the browser.
-
-Important files:
-
-- `app/csr/page.tsx`
-- `app/csr/ClientRenderingPage.tsx`
-- `components/LoadingPosts.tsx`
+The initial page shell is sent first. Data appears after browser JavaScript runs.
 
 ### SSR: `/ssr`
 
 SSR uses an async Server Component and `force-dynamic`.
 
-Flow:
-
-1. The browser requests `/ssr`.
-2. Next.js runs the page on the server.
-3. Data is prepared on the server.
-4. Next.js sends HTML that already contains the posts.
-5. The browser hydrates the page.
-
-Important file:
-
-- `app/ssr/page.tsx`
+The server prepares the initial render for each request and passes initial live data into the TanStack Query panel.
 
 ### SSG: `/ssg`
 
 SSG uses `force-static`.
 
-Flow:
-
-1. `next build` runs the page.
-2. Data is prepared during the build.
-3. HTML is generated ahead of time.
-4. Requests receive the already generated static HTML.
-
-Important file:
-
-- `app/ssg/page.tsx`
+The initial page is generated during `next build`. The client comparison still updates after hydration.
 
 ### ISR: `/isr`
 
 ISR uses `revalidate`.
 
-Flow:
-
-1. Cached HTML is served quickly.
-2. Next.js checks whether the cached page is stale.
-3. After the revalidate interval, Next.js regenerates the page.
-4. Later requests receive the refreshed HTML.
-
-Important file:
-
-- `app/isr/page.tsx`
+The page can be served from cache and regenerated after the configured interval.
 
 Current revalidate interval:
 
 ```ts
 export const revalidate = 15;
 ```
-
-## Data Source
-
-The project uses a local English dataset in `lib/api.ts`.
-
-This keeps the output stable and avoids depending on an external API while comparing rendering behavior.
-
-The same shared function is used by all rendering pages:
-
-```ts
-fetchPosts()
-```
-
-Where that function runs depends on the route:
-
-- CSR: browser after hydration
-- SSR: server per request
-- SSG: build time
-- ISR: build time or regeneration time
 
 ## Getting Started
 
@@ -233,19 +199,18 @@ Start the production server:
 npm run start
 ```
 
-## Useful Checks
+## Expected Build Output
 
-After running a production build, Next.js prints the route output.
-
-Expected behavior:
+After `npm run build`, the route output should show:
 
 ```txt
-/csr  static shell
-/ssr  dynamic server-rendered route
-/ssg  static route
-/isr  static route with revalidate
+ƒ /api/live-data
+○ /csr
+ƒ /ssr
+○ /ssg
+○ /isr  revalidate 15s
 ```
 
 ## Notes
 
-This project is intentionally small and focused. It avoids extra features so the rendering behavior stays easy to inspect in the code and in the browser.
+This project is intentionally focused. It avoids external data services and heavy charting libraries so the rendering and data-fetching behavior stays easy to see in the browser and in the code.

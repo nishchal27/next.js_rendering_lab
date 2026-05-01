@@ -23,6 +23,12 @@ export type RenderingModeConfig = {
   renderedOn: RenderLocation;
   revalidateTime?: string;
   mentalModel: string;
+  initialInsight: string;
+  liveInsight: string;
+  technicalNotes: Array<{
+    title: string;
+    body: string;
+  }>;
   pipeline: PipelineStep[];
 };
 
@@ -50,7 +56,23 @@ export const MODES: Record<RenderingMode, RenderingModeConfig> = {
     generatedWhen: "After JavaScript downloads and runs",
     explanation: "The server sends a light shell. The browser does the data fetch and paints the real content.",
     renderedOn: "Browser",
-    mentalModel: "Great for highly interactive private screens, but the useful content waits for client JavaScript.",
+    mentalModel: "Useful for interactive screens, but the useful content waits for client JavaScript.",
+    initialInsight: "Initial render is browser-driven.",
+    liveInsight: "The first posts appear after hydration. The stock panel also updates on the client through SWR.",
+    technicalNotes: [
+      {
+        title: "Client component",
+        body: "The CSR demo uses a client component because useEffect and useState only run in the browser."
+      },
+      {
+        title: "Loader is expected",
+        body: "The loader appears because data is not part of the first HTML response."
+      },
+      {
+        title: "Live data stays separate",
+        body: "SWR updates stocks after the app is interactive, independent of the initial render."
+      }
+    ],
     pipeline: [
       {
         actor: "Browser",
@@ -97,6 +119,22 @@ export const MODES: Record<RenderingMode, RenderingModeConfig> = {
     explanation: "The server fetches the data first and sends ready-to-read HTML for that request.",
     renderedOn: "Server",
     mentalModel: "Best when each request needs fresh personalized or frequently changing data.",
+    initialInsight: "Initial render is server-driven.",
+    liveInsight: "The server prepares the initial HTML, then SWR keeps stock data fresh in the browser.",
+    technicalNotes: [
+      {
+        title: "Dynamic route",
+        body: "force-dynamic tells Next.js to render this route on every request."
+      },
+      {
+        title: "HTML includes data",
+        body: "Posts are available before the browser receives the document."
+      },
+      {
+        title: "Fallback live data",
+        body: "The page can pass a stock snapshot to SWR so the live panel starts without flicker."
+      }
+    ],
     pipeline: [
       {
         actor: "Browser",
@@ -143,6 +181,22 @@ export const MODES: Record<RenderingMode, RenderingModeConfig> = {
     explanation: "Next.js creates the HTML ahead of time, then every visitor gets the same static file.",
     renderedOn: "Build",
     mentalModel: "Best for pages that can be prepared ahead of time: docs, marketing, blogs, and public content.",
+    initialInsight: "Initial render is build-driven.",
+    liveInsight: "Static HTML can still contain client components that fetch live data after hydration.",
+    technicalNotes: [
+      {
+        title: "Static route",
+        body: "force-static tells Next.js the initial page can be generated at build time."
+      },
+      {
+        title: "Stable timestamp",
+        body: "In production, the initial render timestamp stays the same until the next build."
+      },
+      {
+        title: "Client updates still work",
+        body: "SWR runs in the browser, so live stock updates are separate from static page generation."
+      }
+    ],
     pipeline: [
       {
         actor: "Build Process",
@@ -190,6 +244,22 @@ export const MODES: Record<RenderingMode, RenderingModeConfig> = {
     renderedOn: "Cache",
     revalidateTime: "15 seconds",
     mentalModel: "Best when content can be slightly stale but should update automatically without a full rebuild.",
+    initialInsight: "Initial render is cache-driven.",
+    liveInsight: "The cached page can regenerate later, while SWR updates live stock data immediately on the client.",
+    technicalNotes: [
+      {
+        title: "Revalidate interval",
+        body: "The route can serve cached HTML and regenerate after the configured interval."
+      },
+      {
+        title: "Fast cached response",
+        body: "Users get existing HTML quickly while Next.js handles regeneration when needed."
+      },
+      {
+        title: "Two update paths",
+        body: "ISR updates page HTML over time; SWR updates client data every few seconds."
+      }
+    ],
     pipeline: [
       {
         actor: "Browser",

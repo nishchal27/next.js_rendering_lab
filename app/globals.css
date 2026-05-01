@@ -35,3 +35,35 @@ a {
 .animate-pipeline {
   animation: pipeline 1.2s ease-in-out infinite;
 }
+
+@keyframes soft-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.12);
+  }
+}
+
+.animate-soft-pulse {
+  animation: soft-pulse 1.6s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes naive-pop {
+  0% {
+    opacity: 0.45;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-naive-pop {
+  animation: naive-pop 220ms ease-out;
+}

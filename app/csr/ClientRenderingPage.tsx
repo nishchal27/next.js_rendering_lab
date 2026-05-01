@@ -50,7 +50,6 @@ export function ClientRenderingPage() {
   return (
     <RenderingLabPage
       mode="csr"
-      posts={result.posts}
       renderedAt={renderedAt}
       dataFetchedAt={result.fetchedAt}
       dataSource={result.source}

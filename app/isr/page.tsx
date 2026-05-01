@@ -1,5 +1,6 @@
 import { RenderingLabPage } from "@/components/RenderingLabPage";
 import { fetchPosts } from "@/lib/api";
+import { fetchLiveDataSnapshot } from "@/lib/live-data";
 
 /*
   /isr route
@@ -18,15 +19,15 @@ export const revalidate = 15;
 
 export default async function IsrPage() {
   // This function is used when Next.js builds or regenerates the cached HTML.
-  const result = await fetchPosts();
+  const [result, liveInitialData] = await Promise.all([fetchPosts(), fetchLiveDataSnapshot()]);
 
   return (
     <RenderingLabPage
       mode="isr"
-      posts={result.posts}
       renderedAt={new Date().toISOString()}
       dataFetchedAt={result.fetchedAt}
       dataSource={result.source}
+      liveInitialData={liveInitialData}
     />
   );
 }
