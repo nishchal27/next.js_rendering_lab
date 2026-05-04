@@ -1,3 +1,10 @@
+/*
+  RenderingLabPage.tsx
+
+  Shared page shell for CSR, SSR, SSG, and ISR. Each route supplies timestamps
+  and initial live data, while this component keeps layout identical so behavior
+  differences come from rendering strategy instead of UI differences.
+*/
 import Link from "next/link";
 import { CollapsibleSection } from "@/components/CollapsibleSection";
 import { LiveComparisonPanel } from "@/components/LiveComparisonPanel";
@@ -71,7 +78,16 @@ export function RenderingLabPage({
       </section>
 
       <div className="mt-4">
-        <LiveComparisonPanel initialData={liveInitialData} />
+        {/*
+          liveInitialData is present for server/build/cache routes and absent for
+          pure CSR. That difference lets the TanStack panel demonstrate hydrated
+          data without giving the naive panel a hidden advantage.
+        */}
+        <LiveComparisonPanel
+          initialData={liveInitialData}
+          renderSource={config.renderedOn}
+          renderTimestamp={renderedAt}
+        />
       </div>
 
       <section className="mt-4 rounded-2xl border border-slate-200 bg-slate-950 p-5 text-white shadow-sm">
@@ -117,6 +133,10 @@ export function RenderingLabPage({
   );
 }
 
+/*
+  Navigation stays mode-aware so developers can jump between examples and keep
+  comparing the same UI under different rendering strategies.
+*/
 function TopNav({ activeMode }: { activeMode: RenderingMode }) {
   return (
     <nav className="mb-5 flex flex-wrap items-center justify-between gap-3 text-sm">
@@ -140,6 +160,7 @@ function TopNav({ activeMode }: { activeMode: RenderingMode }) {
   );
 }
 
+// Reusable timestamp/value tile for the initial-render debug summary.
 function InfoTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -149,6 +170,7 @@ function InfoTile({ label, value }: { label: string; value: string }) {
   );
 }
 
+// Compact observation callout; the teaching copy comes from rendering-modes.ts.
 function InsightPill({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -158,6 +180,10 @@ function InsightPill({ label, value }: { label: string; value: string }) {
   );
 }
 
+/*
+  DebugPanel exposes the raw timestamps behind each route. The goal is to make
+  rendering location inspectable instead of asking learners to trust the labels.
+*/
 function DebugPanel({
   mode,
   renderedAt,
@@ -196,6 +222,7 @@ function DebugPanel({
   );
 }
 
+// Small definition-list row used so long ISO timestamps wrap cleanly.
 function DebugRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
@@ -205,6 +232,7 @@ function DebugRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+// Technical notes are centralized in config so route copy and UI stay aligned.
 function TechnicalNotes({ mode }: { mode: RenderingMode }) {
   const config = MODES[mode];
 

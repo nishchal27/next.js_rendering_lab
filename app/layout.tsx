@@ -1,3 +1,9 @@
+/*
+  app/layout.tsx
+
+  Root shell for every route in the App Router. The lab keeps this file small so
+  page-level examples can clearly show which route controls each rendering mode.
+*/
 import type { Metadata } from "next";
 import "./globals.css";
 

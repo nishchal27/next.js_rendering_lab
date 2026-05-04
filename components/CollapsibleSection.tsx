@@ -1,5 +1,12 @@
 "use client";
 
+/*
+  CollapsibleSection.tsx
+
+  Small disclosure component used for optional teaching details. It keeps the
+  main page scannable while still giving developers access to deeper pipeline,
+  debug, and implementation notes when they want them.
+*/
 import { useId, useState } from "react";
 
 type CollapsibleSectionProps = {
@@ -17,6 +24,10 @@ export function CollapsibleSection({
   defaultOpen = false,
   children
 }: CollapsibleSectionProps) {
+  /*
+    useId links the button and panel for assistive tech without hard-coding IDs.
+    That matters because several collapsible sections render on the same page.
+  */
   const contentId = useId();
   const [isOpen, setIsOpen] = useState(defaultOpen);
 

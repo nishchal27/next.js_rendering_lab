@@ -1,3 +1,10 @@
+/*
+  /ssg/page.tsx
+
+  Static Site Generation example. Next.js can run this route during the build,
+  save the HTML, and serve the same result to visitors until a new build ships.
+  The client-side live comparison still hydrates and updates after load.
+*/
 import { RenderingLabPage } from "@/components/RenderingLabPage";
 import { fetchPosts } from "@/lib/api";
 import { fetchLiveDataSnapshot } from "@/lib/live-data";
@@ -20,6 +27,11 @@ export const dynamic = "force-static";
 
 export default async function SsgPage() {
   // force-static tells Next.js this page should be treated as static HTML.
+  /*
+    These values are captured when the static page is generated. That is why the
+    initial timestamps can stay stable while the client-side live panel continues
+    making fresh browser requests after hydration.
+  */
   const [result, liveInitialData] = await Promise.all([fetchPosts(), fetchLiveDataSnapshot()]);
 
   return (

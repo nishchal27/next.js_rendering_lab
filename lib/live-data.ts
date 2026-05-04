@@ -1,3 +1,10 @@
+/*
+  live-data.ts
+
+  Realistic in-memory data source for the lab's live API. It behaves like a
+  fast service whose values change between requests, which lets the UI expose
+  hydration, caching, and refetching without any artificial delay.
+*/
 export type LivePoint = {
   label: string;
   value: number;
@@ -9,53 +16,61 @@ export type LiveDataSnapshot = {
   value: number;
   delta: number;
   timestamp: string;
+  requestId: number;
   points: LivePoint[];
 };
+
+let requestId = 0;
+let currentValue = 126.4;
+let previousValue = currentValue;
+/*
+  Module-level state gives the API continuity across requests in the same server
+  process, similar to reading a changing market price from a backend service.
+*/
+let points = Array.from({ length: 18 }, (_, index) => ({
+  label: String(index + 1),
+  value: round(120 + Math.sin(index / 2.1) * 9 + Math.cos(index / 4.5) * 4)
+}));
 
 function round(value: number) {
   return Number(value.toFixed(2));
 }
 
-function buildPoints(seed: number): LivePoint[] {
-  return Array.from({ length: 18 }, (_, index) => {
-    const wave = Math.sin((seed + index) / 2.1) * 9;
-    const smallerWave = Math.cos((seed + index) / 4.5) * 4;
-
-    return {
-      label: String(index + 1),
-      value: round(120 + wave + smallerWave)
-    };
-  });
-}
-
-function wait(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 /*
   Shared live data generator.
 
-  This simulates an API value that changes over time. Keeping it local gives the
-  demo full control over update speed, delay, and chart shape without relying on
-  an external service.
+  There is intentionally no artificial delay here. The API behaves like a fast
+  in-process data source whose value changes whenever it is requested. Any
+  loading, flicker, duplicate fetching, or smoothness in the UI comes from the
+  React/Next.js data flow, not from staged latency.
 */
-export async function fetchLiveDataSnapshot(delayMs = 0): Promise<LiveDataSnapshot> {
-  if (delayMs > 0) {
-    await wait(delayMs);
-  }
-
+export function fetchLiveDataSnapshot(): LiveDataSnapshot {
   const now = Date.now();
-  const seed = Math.floor(now / 2500);
-  const points = buildPoints(seed);
-  const previous = points.at(-2)?.value ?? points[0].value;
-  const current = points.at(-1)?.value ?? points[0].value;
+  const nextRequestId = requestId + 1;
+  /*
+    Randomness is used only to change the value, like a live metric moving over
+    time. It is not used to slow the response or exaggerate one UI pattern.
+  */
+  const movement = (Math.random() - 0.48) * 2.4;
+
+  requestId = nextRequestId;
+  previousValue = currentValue;
+  currentValue = round(Math.max(90, currentValue + movement));
+  points = [
+    ...points.slice(1),
+    {
+      label: String(nextRequestId),
+      value: currentValue
+    }
+  ];
 
   return {
-    id: seed,
+    id: nextRequestId,
     title: "Realtime Price Index",
-    value: current,
-    delta: round(current - previous),
+    value: currentValue,
+    delta: round(currentValue - previousValue),
     timestamp: new Date(now).toISOString(),
+    requestId: nextRequestId,
     points
   };
 }

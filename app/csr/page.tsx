@@ -1,3 +1,10 @@
+/*
+  /csr/page.tsx
+
+  Thin Server Component wrapper for the CSR lesson. The route exists so Next.js
+  can serve a normal App Router page while the real client-side rendering
+  behavior is isolated in ClientRenderingPage.
+*/
 import { ClientRenderingPage } from "./ClientRenderingPage";
 
 /*
