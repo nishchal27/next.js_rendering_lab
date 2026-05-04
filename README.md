@@ -22,6 +22,9 @@ The goal is to make real behavior visible: the left side is the production-style
 
 Each route includes a side-by-side live data comparison.
 
+Each route also includes a real-time rendering timeline built from browser
+Performance API entries plus explicit hydration, fetch, and UI update marks.
+
 ### Production Pattern
 
 The left panel uses **TanStack Query**.
@@ -70,17 +73,21 @@ It returns:
 - a request id
 - sparkline points
 
-No external API is used. The value changes on each request, but the endpoint does not simulate latency. To observe slow networks, use your browser DevTools network throttling instead of adding delay code to the app.
+No external API is used. The value is derived from time buckets, so repeated
+requests in the same bucket are stable and updates happen naturally over time.
+The endpoint does not simulate latency. To observe slow networks, use your
+browser DevTools network throttling instead of adding delay code to the app.
 
 ## Page Structure
 
 Each rendering route follows the same structure:
 
 1. Header
-2. Initial Render Info
-3. Live Comparison with request activity
-4. What to notice
-5. Collapsible sections
+2. Initial Paint State
+3. Real-Time Rendering Timeline
+4. Live Comparison with telemetry
+5. What to notice
+6. Collapsible sections
 
 Collapsed sections include:
 
@@ -118,6 +125,9 @@ app/
   page.tsx
 
 components/
+  dev/
+    RenderingTimeline.tsx
+    TelemetryPanel.tsx
   CollapsibleSection.tsx
   LiveComparisonPanel.tsx
   LiveDataCard.tsx
@@ -126,7 +136,9 @@ components/
 
 lib/
   api.ts
+  instrumented-fetch.ts
   live-data.ts
+  render-timeline-store.ts
   rendering-modes.ts
 ```
 

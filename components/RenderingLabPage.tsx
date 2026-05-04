@@ -7,6 +7,7 @@
 */
 import Link from "next/link";
 import { CollapsibleSection } from "@/components/CollapsibleSection";
+import { RenderingTimeline } from "@/components/dev/RenderingTimeline";
 import { LiveComparisonPanel } from "@/components/LiveComparisonPanel";
 import { RenderingPipeline } from "@/components/RenderingPipeline";
 import type { LiveDataSnapshot } from "@/lib/live-data";
@@ -66,6 +67,10 @@ export function RenderingLabPage({
         userSees={config.initialPaint.userSees}
         softClass={config.softClass}
       />
+
+      <div className="mt-4">
+        <RenderingTimeline />
+      </div>
 
       <div className="mt-4">
         {/*
