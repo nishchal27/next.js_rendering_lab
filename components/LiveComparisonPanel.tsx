@@ -11,6 +11,7 @@
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { LiveDataCard } from "@/components/LiveDataCard";
+import { instrumentedFetch } from "@/lib/instrumented-fetch";
 import type { LiveDataSnapshot } from "@/lib/live-data";
 import type { RenderLocation } from "@/lib/rendering-modes";
 
@@ -29,7 +30,7 @@ const REFRESH_INTERVAL_MS = 3000;
   of comparing React data-fetching patterns.
 */
 async function getLiveData(): Promise<LiveDataSnapshot> {
-  const response = await fetch("/api/live-data", {
+  const response = await instrumentedFetch("/api/live-data", {
     cache: "no-store"
   });
 
@@ -161,15 +162,15 @@ function ProductionLiveCard({
       tags={["TanStack Query", "Cached", "Background Refetch"]}
       tone="production"
       data={data}
-      endpoint="/api/live-data"
       telemetry={{
+        renderedAt: renderTimestamp,
+        dataFetchedAt: data?.timestamp,
         renderSource,
-        renderTimestamp,
-        lastFetchTimestamp: data?.timestamp,
-        requestCount,
         hydrationStatus: hasHydrated ? "Yes" : "No",
+        requestCount,
+        lastUpdate: data?.timestamp,
         updateMode: isLoading ? "Blocking fetch" : "Background refetch",
-        cacheStatus: data ? "Cached" : "No cache"
+        cacheStatus: data && !isFetching ? "Cached" : data ? "Fresh" : "No cache"
       }}
       isUpdating={isFetching && !isLoading}
       isLoading={isLoading}
@@ -250,13 +251,13 @@ function NaiveLiveCard({
       tags={["useEffect Fetch", "No Cache", "Client Only"]}
       tone="naive"
       data={data}
-      endpoint="/api/live-data"
       telemetry={{
+        renderedAt: renderTimestamp,
+        dataFetchedAt: data?.timestamp,
         renderSource: "Browser",
-        renderTimestamp,
-        lastFetchTimestamp: data?.timestamp,
-        requestCount,
         hydrationStatus: hasHydrated ? "Yes" : "No",
+        requestCount,
+        lastUpdate: data?.timestamp,
         updateMode: isLoading ? "Blocking fetch" : "Client fetch",
         cacheStatus: "No cache"
       }}

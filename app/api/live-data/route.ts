@@ -1,9 +1,9 @@
 /*
   /api/live-data
 
-  Dynamic API route used by both comparison panels. It returns a fresh snapshot
-  on every request so developers can observe real cache reuse, hydration, and
-  refetch behavior in the UI.
+  Dynamic API route used by both comparison panels. It returns the same
+  time-bucketed backend metric shape for both fetching strategies so developers
+  can observe real cache reuse, hydration, and refetch behavior in the UI.
 */
 import { NextResponse } from "next/server";
 import { fetchLiveDataSnapshot } from "@/lib/live-data";

@@ -8,19 +8,10 @@
   background updates on the production side versus local loading states on the
   naive side.
 */
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { TelemetryPanel, type TelemetrySignals } from "@/components/dev/TelemetryPanel";
+import { markBrowserTimelineEvent } from "@/lib/render-timeline-store";
 import type { LiveDataSnapshot } from "@/lib/live-data";
-import type { RenderLocation } from "@/lib/rendering-modes";
-
-export type TelemetrySignals = {
-  renderSource: RenderLocation;
-  renderTimestamp: string;
-  lastFetchTimestamp?: string;
-  requestCount: number;
-  hydrationStatus?: "Yes" | "No";
-  updateMode: "Background refetch" | "Client fetch" | "Blocking fetch";
-  cacheStatus: "Cached" | "No cache";
-};
 
 type LiveDataCardProps = {
   data?: LiveDataSnapshot;
@@ -29,7 +20,6 @@ type LiveDataCardProps = {
   status: string;
   tags: string[];
   tone: "production" | "naive";
-  endpoint: string;
   telemetry: TelemetrySignals;
   isUpdating?: boolean;
   isLoading?: boolean;
@@ -49,12 +39,17 @@ export function LiveDataCard({
   status,
   tags,
   tone,
-  endpoint,
   telemetry,
   isUpdating = false,
   isLoading = false
 }: LiveDataCardProps) {
   const isProduction = tone === "production";
+
+  useEffect(() => {
+    if (data) {
+      markBrowserTimelineEvent("ui_updated", "UI updated");
+    }
+  }, [data]);
 
   return (
     <article
@@ -107,7 +102,7 @@ export function LiveDataCard({
             <div>
               <p className="text-sm font-semibold text-slate-500">{data.title}</p>
               <p className="mt-1 text-5xl font-black tracking-tight text-slate-950">
-                ${data.value.toFixed(2)}
+                {data.value.toFixed(2)}
               </p>
             </div>
             <DeltaPill delta={data.delta} />
@@ -124,7 +119,7 @@ export function LiveDataCard({
         </div>
       ) : null}
 
-      <TelemetryPanel endpoint={endpoint} telemetry={telemetry} />
+      <TelemetryPanel telemetry={telemetry} />
     </article>
   );
 }
@@ -150,114 +145,6 @@ function LoadingState({ tone }: { tone: "production" | "naive" }) {
       </div>
     </div>
   );
-}
-
-/*
-  Signal-based telemetry replaces verbose request logs.
-
-  Each tile answers one behavior question at a glance: where render work happened,
-  whether hydration provided data, how many API requests happened, and whether
-  updates are cached/background work or blocking client fetches.
-*/
-function TelemetryPanel({
-  endpoint,
-  telemetry
-}: {
-  endpoint: string;
-  telemetry: TelemetrySignals;
-}) {
-  const now = useNow();
-  const lastFetchRelative = telemetry.lastFetchTimestamp
-    ? `${formatAge(now - Date.parse(telemetry.lastFetchTimestamp))} ago`
-    : "Pending";
-  const lastFetchValue = telemetry.lastFetchTimestamp
-    ? `${formatTime(telemetry.lastFetchTimestamp)} (${lastFetchRelative})`
-    : "Pending";
-
-  return (
-    <section className="mt-5 rounded-2xl border border-white/80 bg-white/80 p-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">Telemetry</p>
-        <p className="break-words font-mono text-xs font-semibold text-slate-500">{endpoint}</p>
-      </div>
-
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <Signal label="Render source" value={telemetry.renderSource} />
-        <Signal label="Render time" value={formatTime(telemetry.renderTimestamp)} />
-        <Signal label="Last fetch" value={lastFetchValue} wide />
-        <Signal label="Request count" value={String(telemetry.requestCount)} emphasis />
-        {telemetry.hydrationStatus && <Signal label="Hydration" value={telemetry.hydrationStatus} />}
-        <Signal label="Update mode" value={telemetry.updateMode} />
-        <Signal label="Cache status" value={telemetry.cacheStatus} />
-      </div>
-    </section>
-  );
-}
-
-function Signal({
-  label,
-  value,
-  emphasis = false,
-  wide = false
-}: {
-  label: string;
-  value: string;
-  emphasis?: boolean;
-  wide?: boolean;
-}) {
-  return (
-    <div className={`rounded-xl border border-slate-100 bg-white px-3 py-2 ${wide ? "col-span-2" : ""}`}>
-      <p className="text-[0.65rem] font-black uppercase tracking-[0.12em] text-slate-400">{label}</p>
-      <p
-        key={emphasis ? value : label}
-        className={`mt-1 break-words font-mono leading-5 ${
-          emphasis
-            ? "animate-count-pop text-2xl font-black text-slate-950"
-            : "text-xs font-black text-slate-800"
-        }`}
-      >
-        {value}
-      </p>
-    </div>
-  );
-}
-
-/*
-  Updates relative "last fetch" labels once per second. Keeping this timer local
-  avoids coupling display freshness to the actual data refetch interval.
-*/
-function useNow() {
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    const interval = window.setInterval(() => setNow(Date.now()), 1000);
-
-    return () => window.clearInterval(interval);
-  }, []);
-
-  return now;
-}
-
-function formatTime(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit"
-  });
-}
-
-function formatAge(ms: number) {
-  if (ms < 1000) {
-    return `${Math.max(ms, 0)} ms`;
-  }
-
-  return `${Math.floor(ms / 1000)} s`;
 }
 
 function DeltaPill({ delta }: { delta: number }) {

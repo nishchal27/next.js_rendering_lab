@@ -1,9 +1,9 @@
 /*
   live-data.ts
 
-  Realistic in-memory data source for the lab's live API. It behaves like a
-  fast service whose values change between requests, which lets the UI expose
-  hydration, caching, and refetching without any artificial delay.
+  Realistic time-based data source for the lab's live API. It behaves like a
+  fast backend metric that changes over time, which lets the UI expose hydration,
+  caching, and refetching without randomness or artificial delay.
 */
 export type LivePoint = {
   label: string;
@@ -21,56 +21,54 @@ export type LiveDataSnapshot = {
 };
 
 let requestId = 0;
-let currentValue = 126.4;
-let previousValue = currentValue;
-/*
-  Module-level state gives the API continuity across requests in the same server
-  process, similar to reading a changing market price from a backend service.
-*/
-let points = Array.from({ length: 18 }, (_, index) => ({
-  label: String(index + 1),
-  value: round(120 + Math.sin(index / 2.1) * 9 + Math.cos(index / 4.5) * 4)
-}));
+const BUCKET_MS = 3000;
 
 function round(value: number) {
   return Number(value.toFixed(2));
 }
 
+function valueForBucket(bucket: number) {
+  const wave = Math.sin(bucket / 2.4) * 7;
+  const smallerWave = Math.cos(bucket / 5.2) * 3;
+
+  return round(100 + wave + smallerWave);
+}
+
+function buildPoints(currentBucket: number): LivePoint[] {
+  return Array.from({ length: 18 }, (_, index) => {
+    const bucket = currentBucket - 17 + index;
+
+    return {
+      label: String(index + 1),
+      value: valueForBucket(bucket)
+    };
+  });
+}
+
 /*
   Shared live data generator.
 
-  There is intentionally no artificial delay here. The API behaves like a fast
-  in-process data source whose value changes whenever it is requested. Any
-  loading, flicker, duplicate fetching, or smoothness in the UI comes from the
-  React/Next.js data flow, not from staged latency.
+  There is intentionally no artificial delay or random per-request movement.
+  The value is derived from the current time bucket, so repeated requests inside
+  the same bucket are stable and updates reflect a realistic backend metric that
+  changes over time.
 */
 export function fetchLiveDataSnapshot(): LiveDataSnapshot {
   const now = Date.now();
   const nextRequestId = requestId + 1;
-  /*
-    Randomness is used only to change the value, like a live metric moving over
-    time. It is not used to slow the response or exaggerate one UI pattern.
-  */
-  const movement = (Math.random() - 0.48) * 2.4;
+  const bucket = Math.floor(now / BUCKET_MS);
+  const currentValue = valueForBucket(bucket);
+  const previousValue = valueForBucket(bucket - 1);
 
   requestId = nextRequestId;
-  previousValue = currentValue;
-  currentValue = round(Math.max(90, currentValue + movement));
-  points = [
-    ...points.slice(1),
-    {
-      label: String(nextRequestId),
-      value: currentValue
-    }
-  ];
 
   return {
     id: nextRequestId,
-    title: "Realtime Price Index",
+    title: "Live Backend Metric",
     value: currentValue,
     delta: round(currentValue - previousValue),
     timestamp: new Date(now).toISOString(),
     requestId: nextRequestId,
-    points
+    points: buildPoints(bucket)
   };
 }
