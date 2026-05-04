@@ -121,7 +121,6 @@ components/
   CollapsibleSection.tsx
   LiveComparisonPanel.tsx
   LiveDataCard.tsx
-  LoadingPosts.tsx
   RenderingLabPage.tsx
   RenderingPipeline.tsx
 

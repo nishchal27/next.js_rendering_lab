@@ -9,7 +9,7 @@
   state and resets it on every request.
 */
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { LiveDataCard } from "@/components/LiveDataCard";
 import type { LiveDataSnapshot } from "@/lib/live-data";
 import type { RenderLocation } from "@/lib/rendering-modes";
@@ -52,6 +52,7 @@ export function LiveComparisonPanel({
   renderSource,
   renderTimestamp
 }: LiveComparisonPanelProps) {
+  const hasHydrated = useHydrationStatus();
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -83,11 +84,25 @@ export function LiveComparisonPanel({
             initialData={initialData}
             renderSource={renderSource}
             renderTimestamp={renderTimestamp}
+            hasHydrated={hasHydrated}
           />
-          <NaiveLiveCard renderTimestamp={renderTimestamp} />
+          <NaiveLiveCard renderTimestamp={renderTimestamp} hasHydrated={hasHydrated} />
         </div>
       </section>
     </QueryClientProvider>
+  );
+}
+
+/*
+  Hydration is a boundary, not an event from our API. useSyncExternalStore lets
+  the server snapshot read as "No" and the client snapshot read as "Yes" without
+  adding an extra effect-driven render just for instrumentation.
+*/
+function useHydrationStatus() {
+  return useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false
   );
 }
 
@@ -101,11 +116,13 @@ export function LiveComparisonPanel({
 function ProductionLiveCard({
   initialData,
   renderSource,
-  renderTimestamp
+  renderTimestamp,
+  hasHydrated
 }: {
   initialData?: LiveDataSnapshot;
   renderSource: RenderLocation;
   renderTimestamp: string;
+  hasHydrated: boolean;
 }) {
   const [requestCount, setRequestCount] = useState(() => (initialData ? 1 : 0));
 
@@ -150,7 +167,7 @@ function ProductionLiveCard({
         renderTimestamp,
         lastFetchTimestamp: data?.timestamp,
         requestCount,
-        hydrationStatus: initialData ? "Yes" : undefined,
+        hydrationStatus: hasHydrated ? "Yes" : "No",
         updateMode: isLoading ? "Blocking fetch" : "Background refetch",
         cacheStatus: data ? "Cached" : "No cache"
       }}
@@ -167,7 +184,13 @@ function ProductionLiveCard({
   every refresh. The flicker is not simulated by slow code; it comes from clearing
   component state before each fetch and having no cache to fall back to.
 */
-function NaiveLiveCard({ renderTimestamp }: { renderTimestamp: string }) {
+function NaiveLiveCard({
+  renderTimestamp,
+  hasHydrated
+}: {
+  renderTimestamp: string;
+  hasHydrated: boolean;
+}) {
   const [data, setData] = useState<LiveDataSnapshot | undefined>();
   const [isLoading, setIsLoading] = useState(true);
   const [tick, setTick] = useState(0);
@@ -233,6 +256,7 @@ function NaiveLiveCard({ renderTimestamp }: { renderTimestamp: string }) {
         renderTimestamp,
         lastFetchTimestamp: data?.timestamp,
         requestCount,
+        hydrationStatus: hasHydrated ? "Yes" : "No",
         updateMode: isLoading ? "Blocking fetch" : "Client fetch",
         cacheStatus: "No cache"
       }}

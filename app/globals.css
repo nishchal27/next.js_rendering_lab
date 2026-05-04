@@ -60,3 +60,20 @@ a {
   animation: soft-pulse 1.6s ease-in-out infinite;
   transform-origin: center;
 }
+
+@keyframes count-pop {
+  0% {
+    transform: scale(0.96);
+  }
+  55% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-count-pop {
+  animation: count-pop 260ms ease-out;
+  transform-origin: left center;
+}

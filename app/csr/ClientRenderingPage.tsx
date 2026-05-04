@@ -15,7 +15,6 @@
 */
 import { useEffect, useState } from "react";
 import { fetchPosts, type PostsResult } from "@/lib/api";
-import { LoadingPosts } from "@/components/LoadingPosts";
 import { RenderingLabPage } from "@/components/RenderingLabPage";
 
 export function ClientRenderingPage() {
@@ -30,8 +29,8 @@ export function ClientRenderingPage() {
         CSR timing:
         - This function does not run while Next.js is generating HTML.
         - It runs only after React hydrates in the browser.
-        - Any loader is a real consequence of the browser starting with no data,
-          not a delay added by the demo.
+        - The page shows "waiting" signals until this real client fetch resolves;
+          no artificial delay is added to make CSR look slower.
       */
       const postsResult = await fetchPosts();
 
@@ -49,20 +48,13 @@ export function ClientRenderingPage() {
     };
   }, []);
 
-  if (!result) {
-    /*
-      The loader is the visible CSR clue. It appears because the first HTML
-      response did not include posts, not because the demo slowed anything down.
-    */
-    return <LoadingPosts />;
-  }
-
   return (
     <RenderingLabPage
       mode="csr"
-      renderedAt={renderedAt}
-      dataFetchedAt={result.fetchedAt}
-      dataSource={result.source}
+      renderedAt={renderedAt || "Waiting for browser render"}
+      dataFetchedAt={result?.fetchedAt ?? "Waiting for client fetch"}
+      dataSource={result?.source}
+      isInitialDataLoading={!result}
     />
   );
 }
