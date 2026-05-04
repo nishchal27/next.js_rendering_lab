@@ -209,8 +209,11 @@ function Signal({
     <div className={`rounded-xl border border-slate-100 bg-white px-3 py-2 ${wide ? "col-span-2" : ""}`}>
       <p className="text-[0.65rem] font-black uppercase tracking-[0.12em] text-slate-400">{label}</p>
       <p
+        key={emphasis ? value : label}
         className={`mt-1 break-words font-mono leading-5 ${
-          emphasis ? "text-2xl font-black text-slate-950" : "text-xs font-black text-slate-800"
+          emphasis
+            ? "animate-count-pop text-2xl font-black text-slate-950"
+            : "text-xs font-black text-slate-800"
         }`}
       >
         {value}

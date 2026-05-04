@@ -29,6 +29,12 @@ export type RenderingModeConfig = {
   explanation: string;
   renderedOn: RenderLocation;
   revalidateTime?: string;
+  initialPaint: {
+    summary: string;
+    dataInHtml: "Yes" | "No";
+    htmlSource: RenderLocation;
+    userSees: string;
+  };
   mentalModel: string;
   initialInsight: string;
   liveInsight: string;
@@ -63,6 +69,12 @@ export const MODES: Record<RenderingMode, RenderingModeConfig> = {
     generatedWhen: "After JavaScript downloads and runs",
     explanation: "The server sends a light shell. The browser does the data fetch and paints the real content.",
     renderedOn: "Browser",
+    initialPaint: {
+      summary: "Empty shell, data loads after JS",
+      dataInHtml: "No",
+      htmlSource: "Browser",
+      userSees: "Loading state until hydration runs"
+    },
     mentalModel: "Useful for interactive screens, but the useful content waits for client JavaScript.",
     initialInsight: "Initial render is browser-driven.",
     liveInsight: "The first posts appear after hydration. The live panel also updates on the client after React is interactive.",
@@ -125,6 +137,12 @@ export const MODES: Record<RenderingMode, RenderingModeConfig> = {
     generatedWhen: "On every request",
     explanation: "The server fetches the data first and sends ready-to-read HTML for that request.",
     renderedOn: "Server",
+    initialPaint: {
+      summary: "Data already present in HTML",
+      dataInHtml: "Yes",
+      htmlSource: "Server",
+      userSees: "Content immediately"
+    },
     mentalModel: "Best when each request needs fresh personalized or frequently changing data.",
     initialInsight: "Initial render is server-driven.",
     liveInsight: "The server prepares the initial HTML, then TanStack Query keeps live data fresh in the browser.",
@@ -187,6 +205,12 @@ export const MODES: Record<RenderingMode, RenderingModeConfig> = {
     generatedWhen: "During next build",
     explanation: "Next.js creates the HTML ahead of time, then every visitor gets the same static file.",
     renderedOn: "Build",
+    initialPaint: {
+      summary: "Static HTML from build",
+      dataInHtml: "Yes",
+      htmlSource: "Build",
+      userSees: "Prebuilt content immediately"
+    },
     mentalModel: "Best for pages that can be prepared ahead of time: docs, marketing, blogs, and public content.",
     initialInsight: "Initial render is build-driven.",
     liveInsight: "Static HTML can still contain client components that fetch live data after hydration.",
@@ -250,6 +274,12 @@ export const MODES: Record<RenderingMode, RenderingModeConfig> = {
     explanation: "Visitors get cached HTML quickly while Next.js refreshes the page after the revalidate window.",
     renderedOn: "Cache",
     revalidateTime: "15 seconds",
+    initialPaint: {
+      summary: "Cached HTML, may update later",
+      dataInHtml: "Yes",
+      htmlSource: "Cache",
+      userSees: "Cached content immediately"
+    },
     mentalModel: "Best when content can be slightly stale but should update automatically without a full rebuild.",
     initialInsight: "Initial render is cache-driven.",
     liveInsight: "The cached page can regenerate later, while client-side live data updates continue in the browser.",
