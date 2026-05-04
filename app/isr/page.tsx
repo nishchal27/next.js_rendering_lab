@@ -1,3 +1,10 @@
+/*
+  /isr/page.tsx
+
+  Incremental Static Regeneration example. The page behaves like static HTML for
+  visitors, but Next.js may refresh that HTML after the revalidate window. This
+  shows that page regeneration and client-side data refetching are separate paths.
+*/
 import { RenderingLabPage } from "@/components/RenderingLabPage";
 import { fetchPosts } from "@/lib/api";
 import { fetchLiveDataSnapshot } from "@/lib/live-data";
@@ -19,6 +26,10 @@ export const revalidate = 15;
 
 export default async function IsrPage() {
   // This function is used when Next.js builds or regenerates the cached HTML.
+  /*
+    The regenerated page can include a newer initial live snapshot, but the
+    browser-side comparison keeps refetching independently between regenerations.
+  */
   const [result, liveInitialData] = await Promise.all([fetchPosts(), fetchLiveDataSnapshot()]);
 
   return (

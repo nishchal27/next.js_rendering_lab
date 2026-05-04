@@ -1,9 +1,11 @@
 /*
+  LoadingPosts.tsx
+
   Loader shown only for the CSR demo.
 
   SSR, SSG, and ISR send HTML that already contains the posts.
   CSR sends a shell first, then fetches posts in the browser, so we show this
-  loading state to make that delay visible to learners.
+  loading state only while the real browser-side request is unresolved.
 */
 export function LoadingPosts() {
   return (

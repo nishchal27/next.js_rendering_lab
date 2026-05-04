@@ -1,3 +1,10 @@
+/*
+  app/page.tsx
+
+  Entry point for the lab. This page does not demonstrate a rendering strategy
+  itself; it routes developers to the four controlled examples so they can
+  compare one concept at a time.
+*/
 import Link from "next/link";
 import { MODES } from "@/lib/rendering-modes";
 
@@ -23,6 +30,10 @@ export default function HomePage() {
       </div>
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/*
+          The cards are generated from the same config used by the lesson pages,
+          so navigation labels and page explanations cannot drift apart.
+        */}
         {Object.values(MODES).map((mode) => (
           <Link
             key={mode.slug}

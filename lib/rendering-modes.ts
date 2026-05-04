@@ -1,3 +1,10 @@
+/*
+  rendering-modes.ts
+
+  Central lesson configuration for the four rendering routes. Copy, colors,
+  debug labels, and pipeline steps live here so each route can share one visual
+  shell while still explaining its own rendering model.
+*/
 export type RenderingMode = "csr" | "ssr" | "ssg" | "isr";
 
 export type RenderLocation = "Browser" | "Server" | "Build" | "Cache";
@@ -58,7 +65,7 @@ export const MODES: Record<RenderingMode, RenderingModeConfig> = {
     renderedOn: "Browser",
     mentalModel: "Useful for interactive screens, but the useful content waits for client JavaScript.",
     initialInsight: "Initial render is browser-driven.",
-    liveInsight: "The first posts appear after hydration. The stock panel also updates on the client through SWR.",
+    liveInsight: "The first posts appear after hydration. The live panel also updates on the client after React is interactive.",
     technicalNotes: [
       {
         title: "Client component",
@@ -70,7 +77,7 @@ export const MODES: Record<RenderingMode, RenderingModeConfig> = {
       },
       {
         title: "Live data stays separate",
-        body: "SWR updates stocks after the app is interactive, independent of the initial render."
+        body: "The live comparison updates after the app is interactive, independent of the initial render."
       }
     ],
     pipeline: [
@@ -120,7 +127,7 @@ export const MODES: Record<RenderingMode, RenderingModeConfig> = {
     renderedOn: "Server",
     mentalModel: "Best when each request needs fresh personalized or frequently changing data.",
     initialInsight: "Initial render is server-driven.",
-    liveInsight: "The server prepares the initial HTML, then SWR keeps stock data fresh in the browser.",
+    liveInsight: "The server prepares the initial HTML, then TanStack Query keeps live data fresh in the browser.",
     technicalNotes: [
       {
         title: "Dynamic route",
@@ -131,8 +138,8 @@ export const MODES: Record<RenderingMode, RenderingModeConfig> = {
         body: "Posts are available before the browser receives the document."
       },
       {
-        title: "Fallback live data",
-        body: "The page can pass a stock snapshot to SWR so the live panel starts without flicker."
+        title: "Hydrated live data",
+        body: "The page can pass a live snapshot to TanStack Query so the left panel starts without a duplicate loading state."
       }
     ],
     pipeline: [
@@ -194,7 +201,7 @@ export const MODES: Record<RenderingMode, RenderingModeConfig> = {
       },
       {
         title: "Client updates still work",
-        body: "SWR runs in the browser, so live stock updates are separate from static page generation."
+        body: "TanStack Query and the naive fetch both run in the browser, so live updates are separate from static page generation."
       }
     ],
     pipeline: [
@@ -245,7 +252,7 @@ export const MODES: Record<RenderingMode, RenderingModeConfig> = {
     revalidateTime: "15 seconds",
     mentalModel: "Best when content can be slightly stale but should update automatically without a full rebuild.",
     initialInsight: "Initial render is cache-driven.",
-    liveInsight: "The cached page can regenerate later, while SWR updates live stock data immediately on the client.",
+    liveInsight: "The cached page can regenerate later, while client-side live data updates continue in the browser.",
     technicalNotes: [
       {
         title: "Revalidate interval",
@@ -257,7 +264,7 @@ export const MODES: Record<RenderingMode, RenderingModeConfig> = {
       },
       {
         title: "Two update paths",
-        body: "ISR updates page HTML over time; SWR updates client data every few seconds."
+        body: "ISR updates page HTML over time; client data fetching updates the live panel every few seconds."
       }
     ],
     pipeline: [

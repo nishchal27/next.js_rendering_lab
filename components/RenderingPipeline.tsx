@@ -1,6 +1,8 @@
 "use client";
 
 /*
+  RenderingPipeline.tsx
+
   This pipeline is a client component because it animates over time.
 
   Important: this animation is only a teaching visualization. It does not control
@@ -18,6 +20,12 @@ type RenderingPipelineProps = {
 
 const STEP_MS = 1600;
 
+/*
+  Animates through the configured rendering steps for the active route.
+
+  The steps come from rendering-modes.ts so this component can focus on showing
+  sequence and responsibility rather than knowing SSR/SSG/ISR details itself.
+*/
 export function RenderingPipeline({ steps, accentClass, softClass }: RenderingPipelineProps) {
   const [activeStep, setActiveStep] = useState(0);
 

@@ -1,6 +1,12 @@
 "use client";
 
 /*
+  ClientRenderingPage.tsx
+
+  Implements the CSR route's main lesson. This file is intentionally a client
+  component because CSR relies on browser-only hooks: the initial HTML contains
+  the shell, and data appears after hydration starts running React effects.
+
   This component intentionally runs in the browser.
 
   "use client" tells Next.js that this file needs client-side JavaScript.
@@ -24,9 +30,10 @@ export function ClientRenderingPage() {
         CSR timing:
         - This function does not run while Next.js is generating HTML.
         - It runs only after React hydrates in the browser.
-        - The artificial delay makes the loader visible for teaching.
+        - Any loader is a real consequence of the browser starting with no data,
+          not a delay added by the demo.
       */
-      const postsResult = await fetchPosts({ delayMs: 1200 });
+      const postsResult = await fetchPosts();
 
       if (isActive) {
         // This timestamp proves the final UI was rendered by browser-side React.
@@ -43,7 +50,10 @@ export function ClientRenderingPage() {
   }, []);
 
   if (!result) {
-    // The loader is the visible CSR clue: data is not in the first HTML response.
+    /*
+      The loader is the visible CSR clue. It appears because the first HTML
+      response did not include posts, not because the demo slowed anything down.
+    */
     return <LoadingPosts />;
   }
 

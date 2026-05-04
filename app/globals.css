@@ -1,3 +1,9 @@
+/*
+  Global styles for the lab.
+
+  Component-level structure stays in Tailwind classes, while this file holds the
+  app canvas and tiny reusable animations used by teaching visualizations.
+*/
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -24,6 +30,7 @@ a {
 }
 
 @keyframes pipeline {
+  /* Moves the small marker between conceptual pipeline steps. */
   0% {
     left: 0;
   }
@@ -37,6 +44,7 @@ a {
 }
 
 @keyframes soft-pulse {
+  /* Gentle emphasis for active diagram nodes; it is visual only. */
   0%,
   100% {
     opacity: 1;
@@ -51,19 +59,4 @@ a {
 .animate-soft-pulse {
   animation: soft-pulse 1.6s ease-in-out infinite;
   transform-origin: center;
-}
-
-@keyframes naive-pop {
-  0% {
-    opacity: 0.45;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-naive-pop {
-  animation: naive-pop 220ms ease-out;
 }

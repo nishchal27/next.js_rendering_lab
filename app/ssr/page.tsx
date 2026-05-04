@@ -1,3 +1,10 @@
+/*
+  /ssr/page.tsx
+
+  Server Side Rendering example. This async Server Component runs for every
+  request, prepares the teaching data before HTML is sent, and passes an initial
+  live snapshot into TanStack Query so hydration can reuse server work.
+*/
 import { RenderingLabPage } from "@/components/RenderingLabPage";
 import { fetchPosts } from "@/lib/api";
 import { fetchLiveDataSnapshot } from "@/lib/live-data";
@@ -19,6 +26,11 @@ export const dynamic = "force-dynamic";
 
 export default async function SsrPage() {
   // force-dynamic makes this route render on every request instead of being cached.
+  /*
+    Both data reads happen on the server. The live snapshot becomes initialData
+    for the production panel; without that hydration handoff, the client would
+    need to fetch immediately after SSR.
+  */
   const [result, liveInitialData] = await Promise.all([fetchPosts(), fetchLiveDataSnapshot()]);
 
   return (

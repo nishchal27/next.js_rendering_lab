@@ -1,3 +1,10 @@
+/*
+  api.ts
+
+  Shared teaching data for the initial-render routes. Keeping this data local
+  removes external API noise so the lab can focus on where rendering happens:
+  browser, server, build, or cache.
+*/
 export type Post = {
   id: number;
   title: string;
@@ -38,14 +45,6 @@ const teachingPosts: Post[] = [
   }
 ];
 
-type FetchPostsOptions = {
-  delayMs?: number;
-};
-
-function wait(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 /*
   Shared data function used by all rendering pages.
 
@@ -59,15 +58,16 @@ function wait(ms: number) {
   - SSG calls it while Next.js builds static HTML.
   - ISR calls it when Next.js builds or regenerates cached HTML.
 
-  The optional delay is used only by CSR to make the client-side loading state
-  obvious on screen.
+  There is no artificial delay in this lab. CSR still shows its loader when the
+  browser genuinely has no data yet; SSR, SSG, and ISR avoid that because their
+  initial HTML already contains the teaching data.
 */
-export async function fetchPosts(options: FetchPostsOptions = {}): Promise<PostsResult> {
-  if (options.delayMs) {
-    await wait(options.delayMs);
-  }
-
-  // The lab uses fixed English teaching data so the UI always explains rendering clearly.
+export async function fetchPosts(): Promise<PostsResult> {
+  /*
+    The timestamp is deliberately real. Comparing it with the route's renderedAt
+    value helps learners see whether data was prepared in the browser, on the
+    server, during build, or during ISR regeneration.
+  */
   return {
     posts: teachingPosts,
     fetchedAt: new Date().toISOString(),
